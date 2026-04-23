@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Material Unloading Report</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+/* ---------- SCREEN UI ---------- */
+body {font-family:Segoe UI, Roboto, Arial, sans-serif;background:#f4f6f9;padding:20px; display: flex; flex-direction: column; min-height: 100vh; margin:0;}
+.container {max-width:1100px;margin:auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.1); flex: 1;}
+h2{text-align:center;margin:0 0 12px 0;}
+.dateSection {background:#f0f8ff;padding:14px;border-radius:8px;margin-bottom:16px;border-left:5px solid #007bff;}
+.dateGrid {display:grid;grid-template-columns:repeat(2,1fr);gap:12px;align-items:center;}
+.selectedDateDisplay {background:#fff;padding:10px;border-radius:8px;border:2px solid #28a745;text-align:center;font-weight:600;color:#28a745; font-size: 16px;}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.full{grid-column:span 3;}
+input, select{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;box-sizing:border-box; font-size: 15px;}
+input:disabled {background:#e9ecef;cursor:not-allowed;}
+#suggestions div:hover{background:#f1f1f1;}
+.buttons{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items: center;}
+button{padding:10px 16px;border:none;border-radius:8px;font-weight:bold;cursor:pointer; font-size: 14px;}
+.primary{background:#007bff;color:#fff;} .success{background:#28a745;color:#fff;}
+.dark{background:#343a40;color:#fff;} .danger{background:#dc3545;color:#fff;}
+.warning{background:#ffc107;color:#000;}
+button:disabled{opacity:.6;cursor:not-allowed;}
+
+/* Screen Table */
+table{margin-top:16px;width:100%;border-collapse:collapse;table-layout:fixed; margin-bottom: 50px;}
+th{background:#007bff;color:#fff;padding:10px;font-size:15px;}
+td{padding:8px;border:1px solid #ddd;text-align:center;font-size:15px;}
+th, td {word-break:break-word;}
+
+/* ---------- FOOTER STYLE ---------- */
+.footer {
+    text-align: center;
+    padding: 20px 0;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin-top: auto;
+}
+
+/* ---------- INSTRUCTION MODAL STYLE ---------- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000;
+}
+.modal-box {
+    background: #fff; padding: 25px; border-radius: 12px; max-width: 500px; width: 90%;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; border-top: 6px solid #ffc107;
+}
+.modal-box p { font-size: 16px; line-height: 1.6; color: #333; margin-bottom: 20px; text-align: left;}
+.close-modal-btn { background: #343a40; color: #fff; padding: 10px 25px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
+
+/* ---------- PRINT / PDF A4 WRAPPER ---------- */
+#printWrapper {
+  width:210mm; height:297mm; box-sizing:border-box; background:#fff;
+  position:relative; overflow:hidden; padding:12mm; margin:auto;
+  font-family: Arial, sans-serif; color:#000; display:none;
+}
+#printHeader { text-align:left; }
+#printHeader .company { font-size:18px; font-weight:700; }
+#printHeader .dept { font-size:14px; margin-top:2px; }
+#printHeader .title { font-size:16px; font-weight:700; margin-top:6px; }
+#printMetaInfo { display:flex; justify-content:space-between; margin:10px 0; font-size:13px; }
+#printTable { width:100%; border-collapse:collapse; table-layout:fixed; font-size:12px; }
+#printTable th, #printTable td { padding:6px; border:1px solid #ccc; text-align:center; }
+#printWeightSection { margin-top: 40mm; font-size: 13px; font-weight: bold; line-height: 4.0; }
+#signatureBlock { position:absolute; left:12mm; right:12mm; bottom:20mm; display:flex; justify-content:space-between; gap:8mm; box-sizing:border-box;}
+.signatureBox { width:32%; text-align:center; }
+.signatureLine { display:block; border-top:1.5px solid #000; margin-top:20px; padding-top:8px; font-size:13px; font-weight: bold; }
+
+.row-check { transform: scale(1.3); cursor: pointer; }
+</style>
+</head>
+
+<body>
+
+<div id="instructionModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>වැදගත් උපදෙස් (Instructions)</h3>
+        <p>
+            Report එක print කිරීමේදී පළමුව Print button එක click කර බලන්න. යම්කිසි ප්‍රශ්නයක් තිබේනම් Download PDF option එක භාවිතා කරන්න. <br><br>
+            Report Print කිරීමේදී Avg Bag weight සහිතව ලබාගැනීමට Avg. bag option එක check ok කර පළමු print එක Print report option එක භාවිතාකර ලබාගන්න. <br><br>
+            Check ok නොකර අනෙක් Report එක print කරගන්න.
+        </p>
+        <button class="close-modal-btn" onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+<div class="container">
+  <h2>Material Unloading Report</h2>
+
+  <div class="dateSection">
+    <div class="dateGrid">
+      <div>
+        <label for="date" style="display:block;margin-bottom:6px;font-weight:600; font-size: 15px;">Select Date</label>
+        <input type="date" id="date">
+      </div>
+      <div>
+        <label for="shift" style="display:block;margin-bottom:6px;font-weight:600; font-size: 15px;">Select Shift</label>
+        <select id="shift">
+          <option value="" disabled selected>Select Shift</option>
+          <option>Day</option>
+          <option>Night</option>
+        </select>
+      </div>
+      <div id="dateDisplay" class="selectedDateDisplay" style="display:none;grid-column:span 2;">
+        📅 Report Date: <span id="displayDate"></span> &nbsp; | &nbsp; Shift: <span id="displayShift"></span>
+      </div>
+    </div>
+  </div>
+
+  <form id="form">
+    <div class="grid">
+      <div>
+        <input type="text" id="itemSearch" placeholder="Search Material..." autocomplete="off" required>
+        <div id="suggestions" style="border:1px solid #ccc;border-radius:8px;max-height:150px;overflow-y:auto;background:#fff;"></div>
+      </div>
+      <select id="type" required>
+        <option value="" disabled selected>Type</option>
+        <option>A</option><option>B</option><option>C</option><option>D</option><option>-</option>
+      </select>
+      <input type="text" id="vehicle" placeholder="Vehicle No">
+      <input type="number" id="bags" placeholder="No of Bags">
+      <input type="number" step="0.001" id="qty" placeholder="Qty MT">
+      <select id="labour" required>
+        <option value="" disabled selected>Labour Contractor</option>
+        <option>-</option>
+        <option>Tasma</option>
+      </select>
+      <input type="text" id="supplier" placeholder="Supplier">
+      <select id="remarks" class="full" required>
+        <option value="" disabled selected>Remarks</option>
+        <option>Local</option>
+        <option>Imported 20 ft</option>
+        <option>Imported 40 ft</option>
+        <option>Repalleting</option>
+        <option>-</option>
+      </select>
+    </div>
+
+    <div class="buttons">
+      <button type="submit" class="primary">Add / Update</button>
+      <button type="button" onclick="loadTable()" class="dark">Preview</button>
+      <button type="button" onclick="generatePDF()" class="success">Save as PDF</button>
+      <button type="button" onclick="printReport()" class="dark">Print</button>
+      <button type="button" onclick="clearTable()" class="danger">Clear Table</button>
+      <button type="button" onclick="resetDate()" class="warning">Change Date/Shift</button>
+    </div>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th><th>Type</th><th>Vehicle No</th><th>Bags</th>
+        <th>Qty (MT)</th><th>Labour</th><th>Supplier</th><th>Remarks</th>
+        <th style="width:70px;">Avg. Wt?</th><th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<div class="footer">
+    © All rights reserved.<br>
+    Developed by Udan A. Jayawardene<br>
+    UDAN JAY™ DIGITAL SOLUTION
+</div>
+
+<div id="printWrapper">
+  <div id="printContent">
+    <div id="printHeader">
+      <div class="company">CIC FEEDS (PVT) LTD.</div>
+      <div class="dept">QUALITY ASSURANCE DEPARTMENT</div>
+      <div class="title">MATERIAL RECEIPTS UNLOADING REPORT</div>
+    </div>
+    <div id="printMetaInfo">
+      <div><strong>Date:</strong> <span id="p_date"></span></div>
+      <div><strong>Shift:</strong> <span id="p_shift"></span></div>
+    </div>
+    <table id="printTable" border="1">
+      <thead>
+        <tr>
+          <th>Item</th><th>Type</th><th>Vehicle No</th><th>Bags</th>
+          <th>Qty(MT)</th><th>Labour</th><th>Supplier</th><th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody id="printTableBody"></tbody>
+    </table>
+    <div id="printWeightSection"></div>
+  </div>
+  <div id="signatureBlock">
+    <div class="signatureBox"><span class="signatureLine">Prepared By</span></div>
+    <div class="signatureBox"><span class="signatureLine">Checked By</span></div>
+    <div class="signatureBox"><span class="signatureLine">Approved By</span></div>
+  </div>
+</div>
+
+<script>
+window.onload = function() {
+    setTimeout(function() {
+        document.getElementById('instructionModal').style.display = 'flex';
+    }, 1000);
+};
+
+function closeModal() {
+    document.getElementById('instructionModal').style.display = 'none';
+}
+
+let data = [];
+let editIndex = -1;
+let reportDate = null;
+let reportShift = null;
+let dateSelected = false;
+
+let materialList = ["DCP","Salt","Sodium Bicarbonate","Bioplex Prime","Biogain","D'poultry vitamin","Vit Farmstar","DL Methionine","L-Methionine","L-Lysine HCl","L-Lysine Sulphate","L-Threonine","L-Tryptophan","L-Valine","L-Isoleucine","L-Arginine","Allzyme Spectrum","Allzyme vegpro","Kemzyme Promach 5","Clopidol","Roviclin","Monacox","Gromax","Coxistac","Coxidin","Agimycin","Tiazin","Detoxa plus","Toxfin 360","Zagribind","Mycosorb A+","Haltox","Actigen","Safmannan","Enterosure","Lysoforte","FRA Lecimax","Carophyll Red","Happy EGG 100","Mycocurb liquid-AW","Salcurb K2 liquid","Mycocurb Extend Plus","Ventar D","Choline Chloride","Vitamin-C","Vitamin-E","Urea","De Oderase","Arbocel","NaClO","Nutri chem","Leader Yellow","Chromflex - C"];
+
+const form = document.getElementById('form');
+const itemSearch = document.getElementById('itemSearch');
+const suggestions = document.getElementById('suggestions');
+const tbody = document.getElementById('tbody');
+const dateInput = document.getElementById('date');
+const shiftInput = document.getElementById('shift');
+const dateDisplay = document.getElementById('dateDisplay');
+const displayDate = document.getElementById('displayDate');
+const displayShift = document.getElementById('displayShift');
+const printWrapper = document.getElementById('printWrapper');
+const printTableBody = document.getElementById('printTableBody');
+const p_date = document.getElementById('p_date');
+const p_shift = document.getElementById('p_shift');
+const printWeightSection = document.getElementById('printWeightSection');
+
+dateInput.addEventListener('change', () => { if(dateInput.value && shiftInput.value) setReportDate(); });
+shiftInput.addEventListener('change', () => { if(dateInput.value && shiftInput.value) setReportDate(); });
+
+function setReportDate() {
+  reportDate = dateInput.value; reportShift = shiftInput.value; dateSelected = true;
+  displayDate.textContent = reportDate; displayShift.textContent = reportShift;
+  dateDisplay.style.display = 'block'; dateInput.disabled = true; shiftInput.disabled = true;
+}
+
+function resetDate() {
+  data = []; dateSelected = false; dateInput.disabled = false; shiftInput.disabled = false;
+  dateInput.value = ''; shiftInput.value = ''; dateDisplay.style.display = 'none';
+  form.reset(); loadTable();
+}
+
+itemSearch.addEventListener('input', function(){
+  const v = this.value.trim().toLowerCase(); suggestions.innerHTML = ''; if(!v) return;
+  let matches = materialList.filter(m => m.toLowerCase().includes(v)).slice(0,40);
+  matches.forEach(m=>{
+    const d = document.createElement('div'); d.textContent = m; d.style.padding = '8px'; d.style.cursor = 'pointer';
+    d.onclick = ()=>{ itemSearch.value = m; suggestions.innerHTML = ''; };
+    suggestions.appendChild(d);
+  });
+});
+
+form.addEventListener('submit', function(e){
+  e.preventDefault();
+  if(!dateSelected) { alert('Please select Date and Shift first!'); return; }
+  const record = {
+    Item: itemSearch.value, Type: document.getElementById('type').value,
+    Vehicle: document.getElementById('vehicle').value, Bags: document.getElementById('bags').value,
+    Qty: document.getElementById('qty').value, Labour: document.getElementById('labour').value,
+    Supplier: document.getElementById('supplier').value, Remarks: document.getElementById('remarks').value,
+    IncludeWeight: false 
+  };
+  if(editIndex === -1) data.push(record);
+  else { data[editIndex] = record; editIndex = -1; }
+  form.reset(); loadTable();
+});
+
+function loadTable(){
+  tbody.innerHTML = '';
+  data.forEach((r,i)=>{
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${r.Item}</td><td>${r.Type}</td><td>${r.Vehicle}</td><td>${r.Bags}</td>
+        <td>${r.Qty}</td><td>${r.Labour}</td><td>${r.Supplier}</td><td>${r.Remarks}</td>
+        <td><input type="checkbox" class="row-check" ${r.IncludeWeight ? 'checked' : ''} onchange="toggleWeight(${i}, this.checked)"></td>
+        <td>
+          <button onclick="editRow(${i})">Edit</button>
+          <button onclick="deleteRow(${i})" style="background:#dc3545; color:white;">Delete</button>
+        </td>
+      </tr>
+    `);
+  });
+}
+
+function toggleWeight(index, val) { data[index].IncludeWeight = val; }
+
+function editRow(i){
+  const r = data[i]; itemSearch.value = r.Item; document.getElementById('type').value = r.Type;
+  document.getElementById('vehicle').value = r.Vehicle; document.getElementById('bags').value = r.Bags;
+  document.getElementById('qty').value = r.Qty; document.getElementById('labour').value = r.Labour;
+  document.getElementById('supplier').value = r.Supplier; document.getElementById('remarks').value = r.Remarks;
+  editIndex = i;
+}
+
+function deleteRow(i){ if(confirm('Delete?')) { data.splice(i,1); loadTable(); } }
+function clearTable(){ if(confirm('Clear all?')){ data = []; loadTable(); } }
+
+function fillPrintWrapper() {
+  p_date.textContent = reportDate; p_shift.textContent = reportShift;
+  printTableBody.innerHTML = ''; printWeightSection.innerHTML = '';
+  data.forEach(r => {
+    printTableBody.insertAdjacentHTML('beforeend', `
+      <tr><td>${r.Item}</td><td>${r.Type}</td><td>${r.Vehicle}</td><td>${r.Bags}</td><td>${r.Qty}</td><td>${r.Labour}</td><td>${r.Supplier}</td><td>${r.Remarks}</td></tr>
+    `);
+    if(r.IncludeWeight) {
+        const div = document.createElement('div');
+        div.textContent = `Avg. bag/barrel weight of ${r.Item} = `;
+        printWeightSection.appendChild(div);
+    }
+  });
+}
+
+async function generatePDF(){
+  if(!data.length || !dateSelected) { alert('No data to export!'); return; }
+  fillPrintWrapper();
+  printWrapper.style.display = 'block';
+  const canvas = await html2canvas(printWrapper, { scale: 2 });
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, 210, 297);
+  pdf.save(`Material_Report_${reportDate}.pdf`);
+  printWrapper.style.display = 'none';
+}
+
+function printReport(){
+  if(!data.length || !dateSelected) return;
+  fillPrintWrapper();
+  const styles = Array.from(document.querySelectorAll('style')).map(s => s.innerHTML).join('\n');
+  const win = window.open('', '_blank');
+  win.document.write(`<html><head><style>${styles} #printWrapper{display:block;}</style></head><body>${printWrapper.outerHTML}</body></html>`);
+  win.document.close();
+  setTimeout(() => { win.print(); win.close(); }, 500);
+}
+</script>
+</body>
+</html>

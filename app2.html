@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Salary & OT Calculator</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f9;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 500px;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        margin: auto;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+        text-align: center;
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    input[type="number"] {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    .checkbox {
+        margin-top: 15px;
+    }
+
+    button {
+        margin-top: 15px;
+        padding: 10px;
+        width: 48%;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .btn-calc {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-clear {
+        background: #dc3545;
+        color: white;
+        float: right;
+    }
+
+    .result {
+        margin-top: 20px;
+        background: #eef;
+        padding: 15px;
+        border-radius: 5px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Salary & OT Calculator</h2>
+
+    <label>Basic Salary</label>
+    <input type="number" id="basic" placeholder="Enter Basic Salary">
+
+    <label>Allowance</label>
+    <input type="number" id="allowance" placeholder="Enter Allowance">
+
+    <div class="checkbox">
+        <input type="checkbox" id="includeAllowance">
+        <label for="includeAllowance">Include Allowance for Salary Calculation</label>
+    </div>
+
+    <label>Normal OT Hours</label>
+    <input type="number" id="normalOT">
+
+    <label>Special OT Hours</label>
+    <input type="number" id="specialOT">
+
+    <label>No of Lieu Leaves</label>
+    <input type="number" id="lieu">
+
+    <button class="btn-calc" onclick="calculate()">Calculate</button>
+    <button class="btn-clear" onclick="clearForm()">Clear</button>
+
+    <div class="result" id="result">
+        <b>Results will appear here</b>
+    </div>
+</div>
+
+<script>
+function calculate() {
+    let basic = parseFloat(document.getElementById("basic").value) || 0;
+    let allowance = parseFloat(document.getElementById("allowance").value) || 0;
+    let normalOT = parseFloat(document.getElementById("normalOT").value) || 0;
+    let specialOT = parseFloat(document.getElementById("specialOT").value) || 0;
+    let lieu = parseFloat(document.getElementById("lieu").value) || 0;
+    let includeAllowance = document.getElementById("includeAllowance").checked;
+
+    // Salary calculation
+    let salary = includeAllowance ? (basic + allowance) : basic;
+
+    // OT Calculations
+    let normalOTPay = (salary / 240) * 1.5 * normalOT;
+    let specialOTPay = (salary / 240) * 2 * specialOT;
+    let lieuPay = (salary / 30) * lieu;
+
+    // EPF Calculation
+    let epf = (basic + specialOTPay + lieuPay) * 0.08;
+
+    // Total
+    let total = salary + normalOTPay + specialOTPay + lieuPay - epf;
+
+    document.getElementById("result").innerHTML = `
+        <b>Calculated Salary:</b> ${salary.toFixed(2)} <br><br>
+        <b>Normal OT Pay:</b> ${normalOTPay.toFixed(2)} <br>
+        <b>Special OT Pay:</b> ${specialOTPay.toFixed(2)} <br>
+        <b>Lieu Leave Pay:</b> ${lieuPay.toFixed(2)} <br><br>
+        <b>EPF Contribution (8%):</b> ${epf.toFixed(2)} <br><br>
+        <b style="color:green;">Net Salary:</b> ${total.toFixed(2)}
+    `;
+}
+
+function clearForm() {
+    document.getElementById("basic").value = "";
+    document.getElementById("allowance").value = "";
+    document.getElementById("normalOT").value = "";
+    document.getElementById("specialOT").value = "";
+    document.getElementById("lieu").value = "";
+    document.getElementById("includeAllowance").checked = false;
+    document.getElementById("result").innerHTML = "<b>Results will appear here</b>";
+}
+</script>
+
+</body>
+</html>

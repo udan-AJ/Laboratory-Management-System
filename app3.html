@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPD Claim Form Generator</title>
+    <style>
+        /* General Styling */
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .ui-container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .form-section { margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-top: 10px; }
+        input[type="text"], input[type="number"], input[type="date"] { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f8f8f8; }
+
+        .btn { padding: 10px 15px; cursor: pointer; border: none; border-radius: 4px; color: white; margin-top: 10px; }
+        .btn-add { background-color: #28a745; }
+        .btn-print { background-color: #007bff; width: 100%; font-size: 18px; margin-top: 30px; }
+        
+        /* Print Specific Styling (A4) */
+        @media print {
+            body { background: white; padding: 0; }
+            .ui-container, .btn, .delete-btn { display: none; }
+            .print-area { display: block !important; width: 210mm; min-height: 297mm; padding: 20mm; margin: auto; }
+            table { width: 100%; border: 1px solid black; }
+            th, td { border: 1px solid black; padding: 8px; }
+            .header-info { margin-bottom: 20px; }
+            .footer-sig { margin-top: 50px; text-align: right; }
+        }
+
+        .print-area { display: none; }
+        .bold { font-weight: bold; }
+        .text-right { text-align: right; }
+    </style>
+</head>
+<body>
+
+<div class="ui-container">
+    <h2>OPD Claim Input</h2>
+    
+    <div class="form-section">
+        <label>Name of the Employee</label>
+        <input type="text" id="empName" placeholder="Enter Name">
+        
+        <label>Item Number</label>
+        <input type="text" id="itemNo" placeholder="Enter Item Number">
+
+        <label>Department</label>
+        <input type="text" id="dept" placeholder="Enter Department">
+    </div>
+
+    <div class="form-section">
+        <h3>Add Bill Details</h3>
+        <label>Date</label>
+        <input type="date" id="billDate">
+        <label>Bill Number</label>
+        <input type="text" id="billNo" placeholder="Enter Bill No">
+        <label>Amount</label>
+        <input type="number" id="billAmount" placeholder="0.00">
+        <label style="display: inline-block; margin-right: 10px;">Prescription Included?</label>
+        <input type="checkbox" id="prescription">
+        <br>
+        <button class="btn btn-add" onclick="addRow()">Add to Table</button>
+    </div>
+
+    <table id="entryTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Bill No</th>
+                <th>Amount</th>
+                <th>Prescription</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button class="btn btn-print" onclick="printForm()">Print as PDF</button>
+</div>
+
+<div id="printArea" class="print-area">
+    <h2 style="text-align: center;">OPD CLAIM FORM</h2>
+    <div class="header-info">
+        <p class="bold">Insured : CIC Feeds (Pvt) Ltd.</p>
+        <p class="bold">Policy No : MO0012SS0000311</p>
+        <br><br>
+        <p><span class="bold">Name of The Employee:</span> <span id="pName"></span></p>
+        <p><span class="bold">Item No:</span> <span id="pItem"></span></p>
+        <p><span class="bold">Department: Quality Assurance</span> <span id="pDept"></span></p>
+    </div>
+
+    <table id="pTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Bill Number</th>
+                <th>Amount (Rs.)</th>
+                <th>Prescription</th>
+            </tr>
+        </thead>
+        <tbody id="pBody"></tbody>
+        <tfoot>
+            <tr>
+                <th colspan="2" class="text-right">Total Amount:</th>
+                <th id="pTotal" colspan="2"></th>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="footer-sig">
+	<br><br>
+        <p>........................................</p>
+        <p class="bold">Signature</p>
+    </div>
+</div>
+
+<script>
+    let entries = [];
+
+    function addRow() {
+        const date = document.getElementById('billDate').value;
+        const billNo = document.getElementById('billNo').value;
+        const amount = document.getElementById('billAmount').value;
+        const prescription = document.getElementById('prescription').checked;
+
+        if(!date || !billNo || !amount) {
+            alert("Please fill all bill details");
+            return;
+        }
+
+        const entry = { date, billNo, amount: parseFloat(amount), prescription };
+        entries.push(entry);
+        updateUI();
+        
+        // Clear inputs
+        document.getElementById('billNo').value = '';
+        document.getElementById('billAmount').value = '';
+        document.getElementById('prescription').checked = false;
+    }
+
+    function updateUI() {
+        const tbody = document.querySelector('#entryTable tbody');
+        tbody.innerHTML = '';
+        entries.forEach((e, index) => {
+            tbody.innerHTML += `<tr>
+                <td>${e.date}</td>
+                <td>${e.billNo}</td>
+                <td>${e.amount.toFixed(2)}</td>
+                <td>${e.prescription ? 'Yes' : 'No'}</td>
+                <td><button onclick="deleteRow(${index})" style="color:red">Delete</button></td>
+            </tr>`;
+        });
+    }
+
+    function deleteRow(index) {
+        entries.splice(index, 1);
+        updateUI();
+    }
+
+    function printForm() {
+        // Set Header Data
+        document.getElementById('pName').innerText = document.getElementById('empName').value;
+        document.getElementById('pItem').innerText = document.getElementById('itemNo').value;
+        document.getElementById('pDept').innerText = document.getElementById('dept').value;
+
+        // Set Table Data
+        const pBody = document.getElementById('pBody');
+        pBody.innerHTML = '';
+        let total = 0;
+
+        entries.forEach(e => {
+            total += e.amount;
+            pBody.innerHTML += `<tr>
+                <td>${e.date}</td>
+                <td>${e.billNo}</td>
+                <td>${e.amount.toFixed(2)}</td>
+                <td>${e.prescription ? 'Yes' : 'No'}</td>
+            </tr>`;
+        });
+
+        document.getElementById('pTotal').innerText = total.toFixed(2);
+
+        // Trigger Print
+        window.print();
+    }
+</script>
+
+</body>
+</html>
