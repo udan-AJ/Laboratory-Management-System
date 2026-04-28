@@ -65,6 +65,10 @@ th, td {word-break:break-word;}
 #printHeader .company { font-size:18px; font-weight:700; }
 #printHeader .dept { font-size:14px; margin-top:2px; }
 #printHeader .title { font-size:16px; font-weight:700; margin-top:6px; }
+#printHeader .A { font-size:12px; margin-top:2px; }
+#printHeader .B { font-size:12px; margin-top:2px; }
+#printHeader .C { font-size:12px; margin-top:2px; }
+#printHeader .R { font-size:12px; margin-top:2px; }
 #printMetaInfo { display:flex; justify-content:space-between; margin:10px 0; font-size:13px; }
 #printTable { width:100%; border-collapse:collapse; table-layout:fixed; font-size:12px; }
 #printTable th, #printTable td { padding:6px; border:1px solid #ccc; text-align:center; }
@@ -122,7 +126,7 @@ th, td {word-break:break-word;}
       </div>
       <select id="type" required>
         <option value="" disabled selected>Type</option>
-        <option>A</option><option>B</option><option>C</option><option>D</option><option>-</option>
+        <option>A</option><option>B</option><option>C</option><option>R</option><option>-</option>
       </select>
       <input type="text" id="vehicle" placeholder="Vehicle No">
       <input type="number" id="bags" placeholder="No of Bags">
@@ -177,6 +181,10 @@ th, td {word-break:break-word;}
       <div class="company">CIC FEEDS (PVT) LTD.</div>
       <div class="dept">QUALITY ASSURANCE DEPARTMENT</div>
       <div class="title">MATERIAL RECEIPTS UNLOADING REPORT</div>
+      <div class="A">A - Unloading Raw Materials</div>
+    <div class="B">B - Stacking Raw Materials</div>
+    <div class="C">A - Container Unloading</div>
+    <div class="R">R - Repalleting</div>
     </div>
     <div id="printMetaInfo">
       <div><strong>Date:</strong> <span id="p_date"></span></div>
