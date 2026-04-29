@@ -58,9 +58,16 @@ th, td {word-break:break-word;}
 /* ---------- PRINT / PDF A4 WRAPPER ---------- */
 #printWrapper {
   width:210mm; height:297mm; box-sizing:border-box; background:#fff;
-  position:relative; overflow:hidden; padding:12mm; margin:auto;
-  font-family: Arial, sans-serif; color:#000; display:none;
+  position:relative; overflow:hidden; padding:5mm; /* Changed from 12mm to 5mm */
+  margin:auto; font-family: Arial, sans-serif; color:#000; display:none;
 }
+
+/* Reduce browser default print margins */
+@media print {
+  @page { margin: 5mm; }
+  body { margin: 0; }
+}
+
 #printHeader { text-align:left; }
 #printHeader .company { font-size:18px; font-weight:700; }
 #printHeader .dept { font-size:14px; margin-top:2px; }
@@ -69,8 +76,18 @@ th, td {word-break:break-word;}
 #printHeader .C { font-size:12px; margin-top:2px; }
 #printHeader .R { font-size:12px; margin-top:2px; }
 #printMetaInfo { display:flex; justify-content:space-between; margin:10px 0; font-size:13px; }
+
 #printTable { width:100%; border-collapse:collapse; table-layout:fixed; font-size:12px; }
 #printTable th, #printTable td { padding:6px; border:1px solid #ccc; text-align:center; }
+
+/* Changed Print Table Header to Dark */
+#printTable th { 
+  background-color: #555555; 
+  color: #ffffff; 
+  -webkit-print-color-adjust: exact; 
+  print-color-adjust: exact; 
+}
+
 #printWeightSection { margin-top: 40mm; font-size: 13px; font-weight: bold; line-height: 4.0; }
 #signatureBlock { position:absolute; left:12mm; right:12mm; bottom:20mm; display:flex; justify-content:space-between; gap:8mm; box-sizing:border-box;}
 .signatureBox { width:32%; text-align:center; }
