@@ -58,7 +58,8 @@ th, td {word-break:break-word;}
 /* ---------- PRINT / PDF A4 WRAPPER ---------- */
 #printWrapper {
   width:210mm; height:297mm; box-sizing:border-box; background:#fff;
-  position:relative; overflow:hidden; padding:5mm; 
+  position:relative; overflow:hidden; 
+  padding:15mm 5mm 5mm 15mm; /* Top: 15mm, Right: 5mm, Bottom: 5mm, Left: 15mm */
   margin:auto; font-family: Arial, sans-serif; color:#000; display:none;
 }
 
@@ -184,7 +185,7 @@ th, td {word-break:break-word;}
     <thead>
       <tr>
         <th>Item</th><th>Type</th><th>Vehicle No</th><th>Bags</th>
-        <th>Qty (MT)</th><th>Labour Contractor</th><th>Supplier</th><th>Remarks</th>
+        <th>Qty (MT)</th><th>Labour<br>Contractor</th><th>Supplier</th><th>Remarks</th>
         <th style="width:70px;">Avg. Wt?</th><th>Action</th>
       </tr>
     </thead>
@@ -216,7 +217,7 @@ th, td {word-break:break-word;}
       <thead>
         <tr>
           <th>Item</th><th>Type</th><th>Vehicle No</th><th>Bags</th>
-          <th>Qty(MT)</th><th>Labour Contractor</th><th>Supplier</th><th>Remarks</th>
+          <th>Qty(MT)</th><th>Labour<br>Contractor</th><th>Supplier</th><th>Remarks</th>
         </tr>
       </thead>
       <tbody id="printTableBody"></tbody>
