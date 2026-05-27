@@ -6,8 +6,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<style>
+<script src="materials.js"></script> <style>
 /* ---------- SCREEN UI ---------- */
 body {font-family:Segoe UI, Roboto, Arial, sans-serif;background:#f4f6f9;padding:20px; display: flex; flex-direction: column; min-height: 100vh; margin:0;}
 .container {max-width:1100px;margin:auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.1); flex: 1;}
@@ -145,7 +144,11 @@ th, td {word-break:break-word;}
   <form id="form">
     <div class="grid">
       <div>
-        <input type="text" id="itemSearch" placeholder="Search Material..." autocomplete="off" required>
+        <div style="display: flex; gap: 5px;">
+            <input type="text" id="itemSearch" placeholder="Search Material..." autocomplete="off" required>
+            <button type="button" onclick="handleAddNew()" class="success" style="padding:0 12px; font-size: 16px;" title="Add">+</button>
+            <button type="button" onclick="handleRemove()" class="danger" style="padding:0 12px; font-size: 16px;" title="Remove">-</button>
+        </div>
         <div id="suggestions" style="border:1px solid #ccc;border-radius:8px;max-height:150px;overflow-y:auto;background:#fff;"></div>
       </div>
       <select id="type" required>
@@ -251,7 +254,7 @@ let reportDate = null;
 let reportShift = null;
 let dateSelected = false;
 
-let materialList = ["DCP","Salt","Sodium Bicarbonate","Bioplex Prime","Biogain","D'poultry vitamin","Vit Farmstar","DL Methionine","L-Methionine","L-Lysine HCl","L-Lysine Sulphate","L-Threonine","L-Tryptophan","L-Valine","L-Isoleucine","L-Arginine","Allzyme Spectrum","Allzyme vegpro","Kemzyme Promach 5","Clopidol","Roviclin","Monacox","Gromax","Coxistac","Coxidin","Agimycin","Tiazin","Detoxa plus","Toxfin 360","Zagribind","Mycosorb A+","Haltox","Actigen","Safmannan","Enterosure","Lysoforte","FRA Lecimax","Carophyll Red","Happy EGG 100","Mycocurb liquid-AW","Salcurb K2 liquid","Mycocurb Extend Plus","Ventar D","Choline Chloride","Vitamin-C","Vitamin-E","Urea","De Oderase","Arbocel","NaClO","Nutri chem","Leader Yellow","Chromflex - C"];
+// materialList අයින් කළා. ඒක දැන් ගන්නේ materials.js එකෙන්.
 
 const form = document.getElementById('form');
 const itemSearch = document.getElementById('itemSearch');
@@ -373,6 +376,29 @@ function printReport(){
   win.document.write(`<html><head><style>${styles} #printWrapper{display:block;}</style></head><body>${printWrapper.outerHTML}</body></html>`);
   win.document.close();
   setTimeout(() => { win.print(); win.close(); }, 500);
+}
+
+// අලුතින් එකතු කළ Functions දෙක 
+function handleAddNew() {
+    const newItem = prompt("Enter new material name:");
+    if (newItem) {
+        if(addMaterial(newItem.trim())) {
+            itemSearch.value = ''; 
+            suggestions.innerHTML = '';
+        }
+    }
+}
+
+function handleRemove() {
+    const itemToRemove = itemSearch.value.trim();
+    if (itemToRemove) {
+        if(removeMaterial(itemToRemove)) {
+            itemSearch.value = ''; 
+            suggestions.innerHTML = '';
+        }
+    } else {
+        alert("Please search and select an item from the list first to remove it.");
+    }
 }
 </script>
 </body>
